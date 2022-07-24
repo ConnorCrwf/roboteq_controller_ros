@@ -250,7 +250,8 @@ void RoboteqDriver::formQuery(std::string param,
 	nh_priv_.getParam(param, queries);
 	for (std::map<std::string, std::string>::iterator iter = queries.begin(); iter != queries.end(); iter++){
 		ROS_INFO_STREAM(tag << "Publish topic: " << iter->first);
-		pubs.push_back(nh_.advertise<roboteq_controller::channel_values>(iter->first, 100));
+		// pubs.push_back(nh_.advertise<roboteq_controller::channel_values>(iter->first, 100));
+		pubs.push_back(nh_.advertise<std_msgs::Float64MultiArray>(iter->first, 100));
 
 		std::string cmd = iter->second;
 		ser_str << cmd << "_";
@@ -309,12 +310,14 @@ void RoboteqDriver::queryCallback(const ros::TimerEvent &){
 					std::vector<std::string> sub_fields_H;
 					boost::split(sub_fields_H, fields_H[i + 1], boost::algorithm::is_any_of(":"));
 					
-					roboteq_controller::channel_values msg;
-					msg.header.stamp = current_time;
+					// roboteq_controller::channel_values msg;
+					std_msgs::Float64MultiArray msg;
+					// msg.header.stamp = current_time;
 
 					for (int j = 0; j < sub_fields_H.size(); j++){
 						try{
-							msg.value.push_back(boost::lexical_cast<int>(sub_fields_H[j]));
+							// msg.value.push_back(boost::lexical_cast<int>(sub_fields_H[j]));
+							msg.data.push_back(boost::lexical_cast<int>(sub_fields_H[j]));
 						}
 						catch (const std::exception &e){
 							ROS_ERROR_STREAM(tag << "Garbage data on Serial");

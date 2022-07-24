@@ -1,4 +1,4 @@
-serial_port : "/dev/sensors/XDC2460" # Udev rule to make a virtual port that's associated to specific hw
+serial_port : "/dev/ttyACM3" # Udev rule to make a virtual port that's associated to specific hw
 baudrate : 115200
 cmd_vel_topic: "/cmd_vel_roboteq"
 
@@ -12,7 +12,7 @@ max_rpm: 100 # [rpm]
 encoder_resolution: 1024
 
 # For querying data from the motor controller
-frequency: 50   #higher frequency (value is in ms)
+frequency: 100   #higher frequency (value is in ms)
 query:
   motor_amps : ?A 
   motor_command : ?M

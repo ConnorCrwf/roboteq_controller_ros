@@ -1,0 +1,15 @@
+<launch>
+
+    <arg name="left_launch_prefix"         default=""/>
+    <!-- <arg name="launch_prefix"         default="gdb -ex run -args"/> -->
+    <node name = "left_roboteq_controller" pkg = "roboteq_controller" type = "roboteq_controller_node" ns="left_roboteq" output = "screen" launch-prefix="$(arg left_launch_prefix)" >
+        <rosparam command="load" file="$(find roboteq_controller)/config/left_query.yaml" />
+    </node>
+
+    <arg name="right_launch_prefix"         default=""/>
+    <!-- <arg name="launch_prefix"         default="gdb -ex run -args"/> -->
+    <node name = "right_roboteq_controller" pkg = "roboteq_controller" type = "roboteq_controller_node" ns="right_roboteq" output = "screen" launch-prefix="$(arg right_launch_prefix)" >
+        <rosparam command="load" file="$(find roboteq_controller)/config/right_query.yaml" />
+    </node>
+
+</launch>

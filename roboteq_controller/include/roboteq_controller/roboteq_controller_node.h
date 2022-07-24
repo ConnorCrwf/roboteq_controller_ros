@@ -18,6 +18,7 @@
 #include <tf/tf.h>
 
 #include <std_msgs/String.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Empty.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
