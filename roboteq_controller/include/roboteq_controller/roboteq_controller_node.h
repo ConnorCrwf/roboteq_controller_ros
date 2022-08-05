@@ -22,6 +22,7 @@
 #include <std_msgs/Empty.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <roboteq_controller/StampedFloat64MultiArray.h>
 
 #include "roboteq_controller/querylist.h"
 #include "roboteq_controller/channel_values.h"
@@ -75,6 +76,7 @@ private:
 
 	void cmdSetup();
 	void cmdVelCallback(const geometry_msgs::Twist &);
+	void cmdVelCallback_original(const geometry_msgs::Twist &);
 	void powerCmdCallback(const geometry_msgs::Twist &);
 	bool configService(roboteq_controller::config_srv::Request &, roboteq_controller::config_srv::Response &);
 	bool commandService(roboteq_controller::command_srv::Request &, roboteq_controller::command_srv::Response &);

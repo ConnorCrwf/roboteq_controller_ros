@@ -12,22 +12,22 @@ RoboteqOdom::RoboteqOdom(ros::NodeHandle nh, ros::NodeHandle nh_priv):
 	encoder_min_(std::numeric_limits<int64_t>::min()),
 	encoder_max_(std::numeric_limits<int64_t>::max()){
 	
-	nh_priv_.param<std::string>("odom_frame", odom_frame_, "odom");
-	nh_priv_.param<std::string>("child_frame", child_frame_, "base_footprint");
+	nh_.param<std::string>("odom_frame", odom_frame_, "odom");
+	nh_.param<std::string>("child_frame", child_frame_, "base_footprint");
 
-	nh_priv_.getParam("wheel_circumference", wheel_circumference_);
+	nh_.param("wheel_circumference", wheel_circumference_);
 	if (wheel_circumference_ <=0.0 ){
 		ROS_ERROR_STREAM(tag << "Inproper configuration! wheel_circumference need to be greater than zero.");
 	}
-	nh_priv.getParam("track_width", track_width_);
+	nh_.param("track_width", track_width_);
 	if (track_width_ <=0.0 ){
 		ROS_ERROR_STREAM(tag << "Inproper configuration! track_width need to be greater than zero.");
 	}
-	nh_priv.getParam("encoder_resolution", encoder_resolution_);
+	nh_.param<int>("encoder_resolution", encoder_resolution_);
 	if ( encoder_resolution_ <=0.0 ){
 		ROS_ERROR_STREAM(tag << "Inproper configuration! encoder_resolution need to be greater than zero.");
 	}
-	nh_priv.getParam("max_rpm", max_rpm_);
+	nh_.param("max_rpm", max_rpm_);
 	if ( max_rpm_ <=0.0 ){
 		ROS_ERROR_STREAM(tag << "Inproper configuration! max_rpm need to be greater than zero.");
 	}
@@ -41,34 +41,46 @@ RoboteqOdom::RoboteqOdom(ros::NodeHandle nh, ros::NodeHandle nh_priv):
 	odom_.header.frame_id= odom_frame_;
 
 	current_time_ = ros::Time::now();
-  	last_time_ = ros::Time::now();
+  	time_last_ = ros::Time::now();
 }
 
 
-void RoboteqOdom::encoderCallback(const roboteq_controller::channel_values& tick){
+void RoboteqOdom::encoderCallback(const std_msgs::Float64MultiArray& tick){
 	std::lock_guard<std::mutex> lock(locker);
 	
-	int array_size = sizeof(tick.value)/sizeof(tick.value[0]);
+	int array_size = sizeof(tick.data[1])/sizeof(tick.data[0]);
 	assert(array_size == 2);
 	
-	encoder_left_prev_ = encoder_left_;
-	encoder_right_prev_= encoder_right_;
+	encoder_left_prev_ = int(encoder_left_);
+	encoder_right_prev_= int(encoder_right_);
+	ROS_INFO("%d is encoder_left_prev", encoder_left_prev_);
 	
-	encoder_left_		= tick.value[0];
-	encoder_right_		= tick.value[1];
+	encoder_left_		= int(tick.data[0]);
+	encoder_right_		= int(tick.data[1]);
+
+	ROS_INFO("%d is encoder_left_", encoder_left_);
 	
-	ros::Duration duration = tick.header.stamp - odom_.header.stamp;
-	double dt		= duration.sec + (double)duration.nsec/1.0e-9;
+	ros::Time time_now = ros::Time::now();
+	ros::Duration duration = time_now - time_last_;
+	// ROS_INFO("Last time calle was %lf secs", duration.toSec());
+
+	double dt = duration.toSec();
 	
 	// Linear velocity of two wheels
+	nh_.getParam("encoder_resolution", encoder_resolution_);
+	// ROS_INFO("%lf is encoder reesolution", encoder_resolution_);
 	double vel_left = 2* M_PI * (encoder_left_ - encoder_left_prev_)/encoder_resolution_/dt;
 	double vel_right= 2* M_PI * (encoder_right_- encoder_right_prev_)/encoder_resolution_/dt;
+	// ROS_INFO("%lf is velocity", vel_left);
 
 	assert (vel_left <= max_angular_vel_ && vel_right <= max_angular_vel_);
 
+	nh_.getParam("wheel_circumference", wheel_circumference_);
 	// Linear velocity and angular velocity of robot
 	double velocity = wheel_circumference_/4 * (vel_left + vel_right);
 	double angular  = wheel_circumference_/track_width_/2 *(vel_right - vel_left);
+	ROS_INFO("%lf is velocity", vel_left);
+
 	
 	tf::Quaternion q(
         odom_.pose.pose.orientation.x,
@@ -78,10 +90,13 @@ void RoboteqOdom::encoderCallback(const roboteq_controller::channel_values& tick
     tf::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
+	ROS_INFO("%lf is yaw", yaw);
 
 	// Velocity in x and y directions
 	double velocity_x		= velocity * cos(yaw);
 	double velocity_y 		= velocity * sin(yaw);
+
+	ROS_INFO("%lf is velocity X", velocity_x);
 
 	// Update robot's pose
 	tf2::Quaternion q_rot;
@@ -105,7 +120,8 @@ void RoboteqOdom::encoderCallback(const roboteq_controller::channel_values& tick
 	
 	//Publish the odometry message over ROS
 	
-	odom_.header.stamp 			= tick.header.stamp;
+	time_last_ = ros::Time::now();
+	odom_.header.stamp 			= time_last_;
 	//set the position
 	odom_.pose.pose.position.x 	+= velocity_x * dt;
 	odom_.pose.pose.position.y 	+= velocity_y * dt;
@@ -121,6 +137,8 @@ void RoboteqOdom::encoderCallback(const roboteq_controller::channel_values& tick
 
 	//publish the message
 	odom_pub_.publish(odom_);
+
+	
 }
 
 

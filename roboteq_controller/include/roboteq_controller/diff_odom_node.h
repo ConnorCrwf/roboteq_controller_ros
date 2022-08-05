@@ -10,6 +10,7 @@
 #include "std_msgs/Int16.h"
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
+#include "std_msgs/Float64MultiArray.h"
 
 #include <roboteq_controller/channel_values.h>
 #include <roboteq_controller/config_srv.h>
@@ -23,6 +24,10 @@ public:
 	RoboteqOdom(ros::NodeHandle, ros::NodeHandle );
 
 	void spin();
+
+    void encoderCallback(const std_msgs::Float64MultiArray& tick);
+
+    ros::Time current_time_, time_last_;
 
 private:
 	ros::NodeHandle nh_, nh_priv_;
@@ -46,11 +51,10 @@ private:
     const int64_t       encoder_min_,
                         encoder_max_;
 
-	ros::Time current_time_, last_time_;
     
     std::string         odom_frame_, child_frame_;
     nav_msgs::Odometry odom_;
 
     std::mutex          locker;
-	void encoderCallback(const roboteq_controller::channel_values& );
+	// void encoderCallback(const roboteq_controller::channel_values& );
 };

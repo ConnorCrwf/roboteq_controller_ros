@@ -53,6 +53,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    channel_values.msg
+   StampedFloat64MultiArray.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -180,10 +181,17 @@ target_link_libraries(maintenance_client
   ${catkin_LIBRARIES}
 )
 
-add_executable(diff_odom_node
- src/diff_odom_node.cpp)
-add_dependencies(diff_odom_node  roboteq_controller_generate_messages_cpp)
-target_link_libraries(diff_odom_node
+# add_executable(diff_odom_node
+#  src/diff_odom_node.cpp)
+# add_dependencies(diff_odom_node  roboteq_controller_generate_messages_cpp)
+# target_link_libraries(diff_odom_node
+#   ${catkin_LIBRARIES}
+# )
+
+add_executable(odom_node
+ src/odom_node.cpp)
+add_dependencies(odom_node  roboteq_controller_generate_messages_cpp)
+target_link_libraries(odom_node
   ${catkin_LIBRARIES}
 )
 

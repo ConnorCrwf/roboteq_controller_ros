@@ -11,11 +11,11 @@ RoboteqDriver::RoboteqDriver(ros::NodeHandle nh, ros::NodeHandle nh_priv):
 	max_rpm_(0.),
 	frequency_(0){
 	
-	nh_priv.param<std::string>("serial_port", serial_port_, "dev/ttyUSB0");
-	nh_priv.param("baudrate", baudrate_, 112500);
+	nh_.param<std::string>("serial_port", serial_port_, "dev/ttyUSB0");
+	nh_.param("baudrate", baudrate_, 112500);
 
-	nh_priv_.param("closed_loop", closed_loop_, false);
-	nh_priv_.param("diff_drive_mode", diff_drive_mode_, false);
+	nh_.param("closed_loop", closed_loop_, false);
+	nh_.param("diff_drive_mode", diff_drive_mode_, false);
 	if (close){
 		ROS_WARN_STREAM(tag << "In CLOSED-LOOP mode!!!!");
 	}
@@ -23,22 +23,22 @@ RoboteqDriver::RoboteqDriver(ros::NodeHandle nh, ros::NodeHandle nh_priv):
 		ROS_WARN_STREAM(tag << "In OPEN-LOOP mode!!!!");
 	}
 
-	nh_priv_.getParam("wheel_circumference", wheel_circumference_);
+	nh_.getParam("wheel_circumference", wheel_circumference_);
 	if (wheel_circumference_ <=0.0 ){
 		ROS_ERROR_STREAM(tag << "Inproper configuration! wheel_circumference need to be greater than zero.");
 	}
-	nh_priv.getParam("track_width", track_width_);
+	nh_.getParam("track_width", track_width_);
 	if (track_width_ <=0.0 ){
 		ROS_ERROR_STREAM(tag << "Inproper configuration! track_width need to be greater than zero.");
 	}
-	nh_priv.getParam("max_rpm", max_rpm_);
+	nh_.getParam("max_rpm", max_rpm_);
 	if ( max_rpm_ <=0.0 ){
 		ROS_ERROR_STREAM(tag << "Inproper configuration! max_rpm need to be greater than zero.");
 	}
 
-	nh_priv_.param<std::string>("cmd_vel_topic", cmd_vel_topic_, "/cmd_vel");
+	nh_.param<std::string>("cmd_vel_topic", cmd_vel_topic_, "/cmd_vel");
 	if (diff_drive_mode_){
-		cmd_vel_sub_ = nh_.subscribe(cmd_vel_topic_, 10, &RoboteqDriver::cmdVelCallback, this);
+		cmd_vel_sub_ = nh_.subscribe(cmd_vel_topic_, 10, &RoboteqDriver::cmdVelCallback_original, this);
 	}
 	else{
 		cmd_vel_sub_ = nh_.subscribe(cmd_vel_topic_, 10, &RoboteqDriver::powerCmdCallback, this);
@@ -114,7 +114,7 @@ void RoboteqDriver::cmdSetup(){
 
 void RoboteqDriver::run(){
 	initializeServices();
-	nh_priv_.getParam("frequency", frequency_);
+	nh_.getParam("frequency", frequency_);
 
 	if (frequency_ > 0){
 		std::stringstream ss0, ss1;
@@ -155,9 +155,21 @@ void RoboteqDriver::powerCmdCallback(const geometry_msgs::Twist &msg){
 	ser_.write(cmd_str.str());
 	ser_.flush();
 	ROS_INFO("[ROBOTEQ] left: %9.3f right: %9.3f", msg.linear.x, msg.angular.z);
-	// ROS_INFO_STREAM(cmd_str.str());
+	ROS_INFO_STREAM(cmd_str.str());
 }
 
+void RoboteqDriver::cmdVelCallback_original(const geometry_msgs::Twist &msg){
+	
+	std::stringstream cmd_sub;
+	cmd_sub << "!G 1"
+			<< " " << msg.linear.x << "_"
+			<< "!G 2"
+			<< " " << msg.angular.z << "_";
+
+	ser_.write(cmd_sub.str());
+	ser_.flush();
+	ROS_INFO_STREAM(cmd_sub.str());
+}
 
 void RoboteqDriver::cmdVelCallback(const geometry_msgs::Twist &msg){
 	// wheel speed (m/s)
@@ -192,7 +204,7 @@ void RoboteqDriver::cmdVelCallback(const geometry_msgs::Twist &msg){
 
 	ser_.write(cmd_str.str());
 	ser_.flush();
-	// ROS_INFO_STREAM(cmd_str.str());
+	ROS_INFO_STREAM(cmd_str.str());
 }
 
 
@@ -247,7 +259,7 @@ void RoboteqDriver::formQuery(std::string param,
 							std::map<std::string,std::string> &queries, 
 							std::vector<ros::Publisher> &pubs,
 							std::stringstream &ser_str){
-	nh_priv_.getParam(param, queries);
+	nh_.getParam(param, queries);
 	for (std::map<std::string, std::string>::iterator iter = queries.begin(); iter != queries.end(); iter++){
 		ROS_INFO_STREAM(tag << "Publish topic: " << iter->first);
 		// pubs.push_back(nh_.advertise<roboteq_controller::channel_values>(iter->first, 100));
@@ -312,7 +324,8 @@ void RoboteqDriver::queryCallback(const ros::TimerEvent &){
 					
 					// roboteq_controller::channel_values msg;
 					std_msgs::Float64MultiArray msg;
-					// msg.header.stamp = current_time;
+					// roboteq_controller::StampedFloat64MultiArray msg;
+					
 
 					for (int j = 0; j < sub_fields_H.size(); j++){
 						try{
@@ -323,7 +336,10 @@ void RoboteqDriver::queryCallback(const ros::TimerEvent &){
 							ROS_ERROR_STREAM(tag << "Garbage data on Serial");
 							std::cerr << e.what() << '\n';
 						}
+						// msg.header.stamp = ros::Time::now();
+						// msg.header.seq++;
 					}
+					
 					query_pub_[i].publish(msg);
 				}
 			}

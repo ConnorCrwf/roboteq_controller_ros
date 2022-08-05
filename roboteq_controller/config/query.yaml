@@ -1,15 +1,16 @@
-serial_port : "/dev/ttyACM3" # Udev rule to make a virtual port that's associated to specific hw
+serial_port : "/dev/ttyACM0" # Udev rule to make a virtual port that's associated to specific hw
 baudrate : 115200
 cmd_vel_topic: "/cmd_vel_roboteq"
 
-closed_loop: true
+#i changed this
+closed_loop: false
 
 # For differential drive control (dual channel controller)
-diff_drive_mode: true
-wheel_circumference: 0.6594 # [m]
-track_width: .6223 # [m]
-max_rpm: 100 # [rpm]
-encoder_resolution: 1024
+diff_drive_mode: false
+wheel_circumference: 0.398 # [m]
+track_width: .254 # [m]
+max_rpm: 122 # [rpm]
+encoder_resolution: 784
 
 # For querying data from the motor controller
 frequency: 100   #higher frequency (value is in ms)
