@@ -22,7 +22,6 @@
 #include <std_msgs/Empty.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
-#include <roboteq_controller/StampedFloat64MultiArray.h>
 
 #include "roboteq_controller/querylist.h"
 #include "roboteq_controller/channel_values.h"

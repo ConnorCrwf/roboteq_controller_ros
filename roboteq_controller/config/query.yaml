@@ -12,6 +12,19 @@ track_width: .254 # [m]
 max_rpm: 122 # [rpm]
 encoder_resolution: 784
 
+#For odometry
+base_frame: "base_link"
+odom_frame: "odom"
+encoder_topic_name: "/encoder_count"
+command_srv: "/dualchannel_command_service"
+gear_ratio: 24.69
+radius: 0.105
+wheelbase: 1.0
+rate: 5
+ppr: 1024
+encoder_max: 65536
+encoder_min: -65536
+
 # For querying data from the motor controller
 frequency: 100   #higher frequency (value is in ms)
 query:
