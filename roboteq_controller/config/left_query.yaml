@@ -1,6 +1,6 @@
 serial_port : "/dev/ttyACM3" # Udev rule to make a virtual port that's associated to specific hw
 baudrate : 115200
-cmd_vel_topic: "/cmd_vel_roboteq"
+cmd_vel_topic: "cmd_vel_roboteq"
 
 # closed_loop: true
 
