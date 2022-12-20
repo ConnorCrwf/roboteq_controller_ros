@@ -44,6 +44,10 @@ RoboteqDriver::RoboteqDriver(ros::NodeHandle nh, ros::NodeHandle nh_priv):
 		cmd_vel_sub_ = nh_.subscribe(cmd_vel_topic_, 10, &RoboteqDriver::powerCmdCallback, this);
 	}
 
+
+	//Service to reset encoders
+	zero_server_ = nh_priv_.advertiseService("zeroEncoders", &RoboteqDriver::zeroEncodersCb, this);
+
 	// Initiate communication to serial port
 	try{	
 		ser_.setPort(serial_port_);
@@ -136,6 +140,16 @@ void RoboteqDriver::run(){
 		timer_pub_ = nh_.createTimer(ros::Duration(frequency_/ 1000.), &RoboteqDriver::queryCallback, this);
 	}
 }
+
+// Call with following command: rosservice call /wombot_gen3proto/roboteq_controller/zeroEncoders "{}"
+bool RoboteqDriver::zeroEncodersCb(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+  {
+	ser_.write("!C 1 0\r");
+	ser_.write("!C 2 0\r");
+	ser_.flush();
+    res.success = true;
+    return true;
+  }
 
 
 void RoboteqDriver::powerCmdCallback(const geometry_msgs::Twist &msg){

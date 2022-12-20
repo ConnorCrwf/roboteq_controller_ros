@@ -20,6 +20,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Empty.h>
+#include <std_srvs/Trigger.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 
@@ -56,6 +57,7 @@ private:
 	ros::Subscriber 		cmd_vel_sub_;
 	ros::Publisher 			serial_read_pub_;
 	std::vector<ros::Publisher> query_pub_;
+	ros::ServiceServer zero_server_;
 
 	ros::Timer 				timer_pub_;
 
@@ -76,6 +78,7 @@ private:
 	void cmdSetup();
 	void cmdVelCallback(const geometry_msgs::Twist &);
 	void cmdVelCallback_original(const geometry_msgs::Twist &);
+	bool zeroEncodersCb(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
 	void powerCmdCallback(const geometry_msgs::Twist &);
 	bool configService(roboteq_controller::config_srv::Request &, roboteq_controller::config_srv::Response &);
 	bool commandService(roboteq_controller::command_srv::Request &, roboteq_controller::command_srv::Response &);
