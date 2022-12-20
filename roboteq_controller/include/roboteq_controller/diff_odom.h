@@ -69,7 +69,13 @@ private:
 
 	double rate;
 
-	double radius, gear_ratio;
+	double radius;
+
+	double reduction_ratio_internal;
+	double reduction_ratio_external;
+	double reduction_ratio;
+	double poles;
+	int cpr;
 
 	std::string encoder_topic;
 	std::string odom_frame;

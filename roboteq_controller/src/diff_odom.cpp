@@ -38,7 +38,9 @@ void Odometry::init_variables()
 {
 
 	nh.param<std::string>("encoder_topic_name", encoder_topic, "/encoder_count");
-	nh.param("gear_ratio", gear_ratio, 1.0);
+	nh.param("reduction_ratio_internal", reduction_ratio_internal, 1.0);
+	nh.param("reduction_ratio_external", reduction_ratio_external, 1.0);
+	nh.param("poles", poles, 5.0);
 	nh.param("radius", radius, 1.0);
 	nh.param("wheelbase", base_width, 1.0);
 	nh.param("rate", rate, 5.0);
@@ -70,7 +72,12 @@ void Odometry::init_variables()
 	// base_width = 1; // distance between wheels
 
 	// calculation of ticks per meter
-	ticks_meter = (ppr * gear_ratio * 4) / (2 * M_PI * radius); // 1024=PPR 24.69=Gear Ratio 4=CPR/PPR 0.105=Radius of wheel
+
+	reduction_ratio = reduction_ratio_internal*reduction_ratio_external;
+	cpr = poles*(1/reduction_ratio);  //should come out to 245
+
+	ticks_meter = cpr/(2 * M_PI * radius);   //diameter / counters per revolution;
+	// ticks_meter = (ppr * gear_ratio * 4) / (2 * M_PI * radius); // 1024=PPR 24.69=Gear Ratio 4=CPR/PPR 0.105=Radius of wheel
 
 	encoder_low_wrap = ((encoder_max - encoder_min) * 0.3) + encoder_min ;
 	encoder_high_wrap = ((encoder_max - encoder_min) * 0.7) + encoder_min ;

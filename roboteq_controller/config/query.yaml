@@ -7,19 +7,20 @@ closed_loop: false
 
 # For differential drive control (dual channel controller)
 diff_drive_mode: false
-wheel_circumference: 0.398 # [m]
-track_width: .254 # [m]
+wheel_circumference: 0.3667 # [m]
+track_width: .289 # [m]
 max_rpm: 122 # [rpm]
-encoder_resolution: 784
 
 #For odometry
 base_frame: "base_link"
 odom_frame: "odom"
 encoder_topic_name: "encoder_count"
 command_srv: "/dualchannel_command_service"
-gear_ratio: 24.69
-radius: 0.105
-wheelbase: 1.0
+reduction_ratio_internal: 0.0204    # 1/49, internal gearing ratio, see https://www.superdroidrobots.com/store/electrical-parts/encoders-accessories/encoder-motors/product=849
+reduction_ratio_external: 0.3125    # 10/32, external gearing ratio
+radius: 0.05839    # measured tracks
+wheelbase: 0.2794  # measured
+poles: 5
 rate: 5
 ppr: 1024
 encoder_max: 65536
