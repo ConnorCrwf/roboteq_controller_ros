@@ -15,7 +15,7 @@ encoder_resolution: 784
 #For odometry
 base_frame: "base_link"
 odom_frame: "odom"
-encoder_topic_name: "/encoder_count"
+encoder_topic_name: "encoder_count"
 command_srv: "/dualchannel_command_service"
 gear_ratio: 24.69
 radius: 0.105
