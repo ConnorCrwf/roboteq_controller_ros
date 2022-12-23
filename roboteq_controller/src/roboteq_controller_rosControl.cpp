@@ -1,11 +1,11 @@
-#include "roboteq_controller/roboteq_controller_node.h"
+#include "roboteq_controller/roboteq_controller_rosControl.h"
 
 static const std::string tag {"[RoboteQ] "};
 
 
-RoboteqDriver::RoboteqDriver(ros::NodeHandle nh, ros::NodeHandle nh_priv):
+RoboteqDriverROS::RoboteqDriverROS(ros::NodeHandle nh, ros::NodeHandle private_nh):
 	nh_(nh),
-	nh_priv_(nh_priv),
+	private_nh_(private_nh),
 	wheel_circumference_(0.),
 	track_width_(0.),
 	max_rpm_(0.),
@@ -38,15 +38,15 @@ RoboteqDriver::RoboteqDriver(ros::NodeHandle nh, ros::NodeHandle nh_priv):
 
 	nh_.param<std::string>("cmd_vel_topic", cmd_vel_topic_, "/cmd_vel");
 	if (diff_drive_mode_){
-		cmd_vel_sub_ = nh_.subscribe(cmd_vel_topic_, 10, &RoboteqDriver::cmdVelCallback_original, this);
+		cmd_vel_sub_ = nh_.subscribe(cmd_vel_topic_, 10, &RoboteqDriverROS::cmdVelCallback_original, this);
 	}
 	else{
-		cmd_vel_sub_ = nh_.subscribe(cmd_vel_topic_, 10, &RoboteqDriver::powerCmdCallback, this);
+		cmd_vel_sub_ = nh_.subscribe(cmd_vel_topic_, 10, &RoboteqDriverROS::powerCmdCallback, this);
 	}
 
 
 	//Service to reset encoders
-	zero_server_ = nh_priv_.advertiseService("zeroEncoders", &RoboteqDriver::zeroEncodersCb, this);
+	zero_server_ = private_nh_.advertiseService("zeroEncoders", &RoboteqDriverROS::zeroEncodersCb, this);
 
 	// Initiate communication to serial port
 	try{	
@@ -76,7 +76,7 @@ RoboteqDriver::RoboteqDriver(ros::NodeHandle nh, ros::NodeHandle nh_priv):
 }
 
 
-void RoboteqDriver::cmdSetup(){
+void RoboteqDriverROS::cmdSetup(){
 	// stop motors
 	ser_.write("!G 1 0\r");
 	ser_.write("!G 2 0\r");
@@ -116,7 +116,7 @@ void RoboteqDriver::cmdSetup(){
 }
 
 
-void RoboteqDriver::run(){
+void RoboteqDriverROS::run(){
 	initializeServices();
 	nh_.getParam("frequency", frequency_);
 
@@ -137,12 +137,12 @@ void RoboteqDriver::run(){
 	serial_read_pub_ = nh_.advertise<std_msgs::String>("read", 1000);
 	
 	if (frequency_ > 0){
-		timer_pub_ = nh_.createTimer(ros::Duration(frequency_/ 1000.), &RoboteqDriver::queryCallback, this);
+		timer_pub_ = nh_.createTimer(ros::Duration(frequency_/ 1000.), &RoboteqDriverROS::queryCallback, this);
 	}
 }
 
 // Call with following command: rosservice call /wombot_gen3proto/roboteq_controller/zeroEncoders "{}"
-bool RoboteqDriver::zeroEncodersCb(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+bool RoboteqDriverROS::zeroEncodersCb(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
   {
 	ser_.write("!C 1 0\r");
 	ser_.write("!C 2 0\r");
@@ -152,7 +152,7 @@ bool RoboteqDriver::zeroEncodersCb(std_srvs::Trigger::Request &req, std_srvs::Tr
   }
 
 
-void RoboteqDriver::powerCmdCallback(const geometry_msgs::Twist &msg){
+void RoboteqDriverROS::powerCmdCallback(const geometry_msgs::Twist &msg){
 	std::stringstream cmd_str;
 	if (closed_loop_){
 		cmd_str << "!S 1"
@@ -172,7 +172,7 @@ void RoboteqDriver::powerCmdCallback(const geometry_msgs::Twist &msg){
 	ROS_INFO_STREAM(cmd_str.str());
 }
 
-void RoboteqDriver::cmdVelCallback_original(const geometry_msgs::Twist &msg){
+void RoboteqDriverROS::cmdVelCallback_original(const geometry_msgs::Twist &msg){
 	
 	std::stringstream cmd_sub;
 	cmd_sub << "!G 1"
@@ -185,7 +185,7 @@ void RoboteqDriver::cmdVelCallback_original(const geometry_msgs::Twist &msg){
 	ROS_INFO_STREAM(cmd_sub.str());
 }
 
-void RoboteqDriver::cmdVelCallback(const geometry_msgs::Twist &msg){
+void RoboteqDriverROS::cmdVelCallback(const geometry_msgs::Twist &msg){
 	// wheel speed (m/s)
 	float right_speed = msg.linear.x + track_width_ * msg.angular.z / 2.0;
 	float left_speed  = msg.linear.x - track_width_ * msg.angular.z / 2.0;
@@ -222,7 +222,7 @@ void RoboteqDriver::cmdVelCallback(const geometry_msgs::Twist &msg){
 }
 
 
-bool RoboteqDriver::configService(roboteq_controller::config_srv::Request &request, 
+bool RoboteqDriverROS::configService(roboteq_controller::config_srv::Request &request, 
 									roboteq_controller::config_srv::Response &response){
 	std::stringstream str;
 	str << "^" << request.userInput << " " << request.channel << " " << request.value << "_ "
@@ -236,7 +236,7 @@ bool RoboteqDriver::configService(roboteq_controller::config_srv::Request &reque
 }
 
 
-bool RoboteqDriver::commandService(roboteq_controller::command_srv::Request &request, roboteq_controller::command_srv::Response &response)
+bool RoboteqDriverROS::commandService(roboteq_controller::command_srv::Request &request, roboteq_controller::command_srv::Response &response)
 {
 	std::stringstream str;
 	str << "!" << request.userInput << " " << request.channel << " " << request.value << "_";
@@ -249,7 +249,7 @@ bool RoboteqDriver::commandService(roboteq_controller::command_srv::Request &req
 }
 
 
-bool RoboteqDriver::maintenanceService(roboteq_controller::maintenance_srv::Request &request, roboteq_controller::maintenance_srv::Response &response)
+bool RoboteqDriverROS::maintenanceService(roboteq_controller::maintenance_srv::Request &request, roboteq_controller::maintenance_srv::Response &response)
 {
 	std::stringstream str;
 	str << "%" << request.userInput << " "
@@ -263,13 +263,13 @@ bool RoboteqDriver::maintenanceService(roboteq_controller::maintenance_srv::Requ
 }
 
 
-void RoboteqDriver::initializeServices(){
-	configsrv_ 			= nh_.advertiseService("config_service", &RoboteqDriver::configService, this);
-	commandsrv_ 		= nh_.advertiseService("command_service", &RoboteqDriver::commandService, this);
-	maintenancesrv_ 	= nh_.advertiseService("maintenance_service", &RoboteqDriver::maintenanceService, this);
+void RoboteqDriverROS::initializeServices(){
+	configsrv_ 			= nh_.advertiseService("config_service", &RoboteqDriverROS::configService, this);
+	commandsrv_ 		= nh_.advertiseService("command_service", &RoboteqDriverROS::commandService, this);
+	maintenancesrv_ 	= nh_.advertiseService("maintenance_service", &RoboteqDriverROS::maintenanceService, this);
 }
 
-void RoboteqDriver::formQuery(std::string param, 
+void RoboteqDriverROS::formQuery(std::string param, 
 							std::map<std::string,std::string> &queries, 
 							std::vector<ros::Publisher> &pubs,
 							std::stringstream &ser_str){
@@ -284,7 +284,7 @@ void RoboteqDriver::formQuery(std::string param,
 }
 
 
-void RoboteqDriver::queryCallback(const ros::TimerEvent &){
+void RoboteqDriverROS::queryCallback(const ros::TimerEvent &){
 	int count = 0;
 	ros::Time current_time = ros::Time::now();
 	if (ser_.available()){
@@ -359,16 +359,3 @@ void RoboteqDriver::queryCallback(const ros::TimerEvent &){
 	}
 }
 
-
-int main(int argc, char **argv)
-{
-	ros::init(argc, argv, "roboteq_controller");
-	ros::NodeHandle nh;
-	ros::NodeHandle nh_priv("~");
-	RoboteqDriver driver(nh, nh_priv);
-	ros::MultiThreadedSpinner spinner(4);
-	spinner.spin();
-	ros::waitForShutdown();
-
-	return 0;
-}

@@ -5,7 +5,7 @@
     <arg name="launch_prefix"         default=""/>
     <!-- <arg name="launch_prefix"         default="gdb -ex run -args"/> -->
     <!-- ns="" -->
-    <node name = "roboteq_controller" pkg = "roboteq_controller" type = "roboteq_controller_node" output = "screen" launch-prefix="$(arg launch_prefix)" >
+    <node name = "roboteq_controller" pkg = "roboteq_controller" type = "roboteq_controller_node_original" output = "screen" launch-prefix="$(arg launch_prefix)" >
         
     </node>
 
