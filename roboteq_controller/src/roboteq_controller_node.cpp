@@ -1,4 +1,4 @@
-#include "roboteq_controller/roboteq_controller_node_original.h"
+#include "roboteq_controller/roboteq_controller_node.h"
 
 static const std::string tag {"[RoboteQ] "};
 

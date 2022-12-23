@@ -147,15 +147,15 @@ include_directories(
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
-## Add cmake target dependencies of the executable
-## same as for the library above
-# add_executable(roboteq_controller_node_original
-#  src/roboteq_controller_node_original.cpp)
-# add_dependencies(roboteq_controller_node_original  roboteq_controller_generate_messages_cpp)
+# Add cmake target dependencies of the executable
+# same as for the library above
+add_executable(roboteq_controller_node
+ src/roboteq_controller_node.cpp)
+add_dependencies(roboteq_controller_node  roboteq_controller_generate_messages_cpp)
 
-# target_link_libraries(roboteq_controller_node_original
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(roboteq_controller_node
+  ${catkin_LIBRARIES}
+)
 
 add_library(${PROJECT_NAME}
   src/roboteq_controller_rosControl.cpp
@@ -227,11 +227,11 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
 
-# install(TARGETS roboteq_controller_node_original
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#  )
+install(TARGETS roboteq_controller_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
  install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
