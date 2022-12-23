@@ -77,7 +77,8 @@ void Odometry::init_variables()
 	cpr = poles*(1/reduction_ratio);  //should come out to 245
 
 	//temporary correction until I figure out reason for issue
-	double cpr_new = 11.67*cpr;
+	double correction_factor = 12.1245
+	double cpr_new = correction_factor*cpr;
 
 	ticks_meter = cpr_new/(2 * M_PI * radius);   // counters per revolution divided by wheel diameter;
 	// ticks_meter = (ppr * gear_ratio * 4) / (2 * M_PI * radius); // 1024=PPR 24.69=Gear Ratio 4=CPR/PPR 0.105=Radius of wheel
